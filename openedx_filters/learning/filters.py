@@ -1445,3 +1445,39 @@ class ScheduleQuerySetRequested(OpenEdxPublicFilter):
         """
         data = super().run_pipeline(schedules=schedules)
         return data.get("schedules")
+
+
+class GetEnrollEmailNotificationExtraParameters(OpenEdxPublicFilter):
+    """
+    Filter used to provide additional context parameters for enrollment email notifications.
+
+    Purpose:
+        This filter is triggered when an enrollment-related email notification
+        is being prepared, allowing downstream extensions to inject extra
+        parameters into the email context.
+
+    Filter Type:
+        org.openedx.learning.course.enrollment.email-notification-extra-params.v1
+
+    Trigger:
+        - Repository: openedx/edx-platform
+        - Path: lms/djangoapps/instructor/enrollment.py
+        - Function or Method: send_mail_to_student.
+    """
+
+    filter_type = "org.openedx.learning.course.enrollment.email-notification-extra-params.v1"
+
+    @classmethod
+    def run_filter(cls, course_key):
+        """
+        Execute the filter pipeline to collect extra parameters for
+        enrollment email notifications.
+
+        Arguments:
+            course_key (CourseKey): The course key associated with the enrollment.
+
+        Returns:
+            dict: A dictionary containing additional parameters to be merged
+            into the enrollment email context.
+        """
+        return super().run_pipeline(course_key=course_key)

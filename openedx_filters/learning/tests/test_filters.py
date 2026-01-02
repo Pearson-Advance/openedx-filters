@@ -1,7 +1,7 @@
 """
 Tests for learning subdomain filters.
 """
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 # Ignore the type error for ddt import since it is not recognized by mypy.
 from ddt import data, ddt, unpack  # type: ignore
@@ -22,6 +22,7 @@ from openedx_filters.learning.filters import (
     CourseRunAPIRenderStarted,
     CourseUnenrollmentStarted,
     DashboardRenderStarted,
+    GetEnrollEmailNotificationExtraParameters,
     IDVPageURLRequested,
     InstructorDashboardRenderStarted,
     ORASubmissionViewRenderStarted,
@@ -801,3 +802,27 @@ class TestScheduleFilters(TestCase):
         result = ScheduleQuerySetRequested.run_filter(schedules)
 
         self.assertEqual(schedules, result)
+
+
+class TestGetEnrollEmailNotificationExtraParameters(TestCase):
+    """
+    Test suite for the GetEnrollEmailNotificationExtraParameters public filter.
+    """
+
+    @patch("openedx_filters.learning.filters.OpenEdxPublicFilter.run_pipeline")
+    def test_run_filter_delegates_to_pipeline(self, mock_run_pipeline):
+        """
+        Should call run_pipeline with course_key and return the result.
+        """
+        mock_course_key = MagicMock()
+        expected_result = {
+            "institution_name": "Test Institution",
+            "institution_admin_email": "admin@example.com",
+        }
+
+        mock_run_pipeline.return_value = expected_result
+
+        result = GetEnrollEmailNotificationExtraParameters.run_filter(mock_course_key)
+
+        mock_run_pipeline.assert_called_once_with(course_key=mock_course_key)
+        self.assertEqual(result, expected_result)
