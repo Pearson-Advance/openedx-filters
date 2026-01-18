@@ -30,6 +30,7 @@ from openedx_filters.learning.filters import (
     ScheduleQuerySetRequested,
     StudentLoginRequested,
     StudentRegistrationRequested,
+    StudentTermsOfServiceRequested,
     VerticalBlockChildRenderStarted,
     VerticalBlockRenderCompleted,
 )
@@ -826,3 +827,26 @@ class TestGetEnrollEmailNotificationExtraParameters(TestCase):
 
         mock_run_pipeline.assert_called_once_with(course_key=mock_course_key)
         self.assertEqual(result, expected_result)
+
+
+class TestStudentTermsOfServiceRequested(TestCase):
+    """
+    Test class to verify standard behavior of the student terms of service filters.
+    You'll find test suites for:
+
+    - StudentTermsOfServiceRequested
+    """
+
+    def test_student_terms_of_service_requested(self):
+        """
+        Test StudentTermsOfServiceRequested filter behavior under normal conditions.
+
+        Expected behavior:
+            - The filter must have the signature specified.
+            - The filter should return form data.
+        """
+        label = Mock()
+
+        result = StudentTermsOfServiceRequested.run_filter(label)
+
+        self.assertEqual(label, result)

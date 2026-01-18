@@ -1481,3 +1481,37 @@ class GetEnrollEmailNotificationExtraParameters(OpenEdxPublicFilter):
             into the enrollment email context.
         """
         return super().run_pipeline(course_key=course_key)
+
+
+class StudentTermsOfServiceRequested(OpenEdxPublicFilter):
+    """
+    Filter used to act on terms of service label for registration form.
+
+    Purpose:
+        This filter is triggered when a user requests the register view, just before
+        the page is rendered allowing the filter to act on the terms of service label.
+
+    Filter Type:
+        org.openedx.learning.student.terms_of_service.requested.v1
+
+    Trigger:
+        - Repository: openedx/edx-platform
+        - Path: core/djangoapps/user_authn/views/registration_form.py
+        - Function or Method: _add_terms_of_service_field
+    """
+
+    filter_type = "org.openedx.learning.student.terms_of_service.requested.v1"
+
+    @classmethod
+    def run_filter(cls, label: str) -> str | None:
+        """
+        Process the label using the configured pipeline steps to modify the terms of service label.
+
+        Arguments:
+            label (str): The terms of service label to be modified.
+
+        Returns:
+            str: The modified terms of service label.
+        """
+        data = super().run_pipeline(label=label)
+        return data.get("label")
