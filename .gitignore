@@ -32,7 +32,14 @@ pip-log.txt
 coverage.xml
 htmlcov/
 
-
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # The Silver Searcher
 .agignore
