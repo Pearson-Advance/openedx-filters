@@ -259,3 +259,43 @@ class CcxPendingEnrollmentsRequested(OpenEdxPublicFilter):
             pending_enrollments=pending_enrollments,
         )
         return data.get("pending_enrollments", pending_enrollments)
+
+
+class PreBadgeIssuanceFilter(OpenEdxPublicFilter):
+    """
+    Filter used to determine if a badge should be issued.
+
+    Purpose:
+        Triggered before issuing a Credly badge, allows plugins to intercept
+        and determine whether the badge should be issued based on custom logic.
+
+    Filter Type:
+        org.openedx.learning.badges.pre_badge_issuance.v1
+
+    Trigger:
+        - Repository: Pearson-Advance/credentials
+        - Path: credentials/apps/badges/signals/handlers.py
+        - Function or Method: handle_badge_completion
+    """
+
+    filter_type = "org.openedx.learning.badges.pre_badge_issuance.v1"
+
+    @classmethod
+    def run_filter(cls, username, badge_template_id, course_key, **kwargs):
+        """
+        Process badge issuance decision through the pipeline.
+
+        Arguments:
+            username (str): Username of the user
+            badge_template_id (str): ID of the badge template
+            course_key (str): Course key where the requirement was fulfilled
+
+        Returns:
+            dict: {'allow': bool, 'username': str, 'badge_template_id': str, 'course_key': str}
+        """
+        data = super().run_pipeline(
+            username=username,
+            badge_template_id=badge_template_id,
+            course_key=course_key,
+        )
+        return data
