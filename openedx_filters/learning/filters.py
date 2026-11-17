@@ -1166,6 +1166,44 @@ class CourseRunAPIRenderStarted(OpenEdxPublicFilter):
         return data.get("serialized_courserun")
 
 
+class LearnerDashboardCoursesRendered(OpenEdxPublicFilter):
+    """
+    Filter used to modify the complete list of learner dashboard course cards.
+
+    Purpose:
+        Modify or reorder course cards after enrollments and unfulfilled entitlements
+        have been serialized. An empty pipeline preserves the original list.
+
+    Filter Type:
+        org.openedx.learning.home.courses.rendered.v1
+
+    Trigger:
+        - Repository: openedx/edx-platform
+        - Path: lms/djangoapps/learner_home/serializers.py
+        - Function or Method: LearnerDashboardSerializer.get_courses
+    """
+
+    filter_type = "org.openedx.learning.home.courses.rendered.v1"
+
+    @classmethod
+    def run_filter(
+        cls, serialized_courses: list[dict[str, Any]], sort_by: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Run the pipeline on the complete list of serialized course cards.
+
+        Arguments:
+            serialized_courses: Enrollment and entitlement cards. Unfulfilled
+                entitlement cards have a null courseRun.
+            sort_by: The requested sort mode, or None when no mode was requested.
+
+        Returns:
+            The course cards returned by the pipeline.
+        """
+        data = super().run_pipeline(serialized_courses=serialized_courses, sort_by=sort_by)
+        return data["serialized_courses"]
+
+
 class InstructorDashboardRenderStarted(OpenEdxPublicFilter):
     """
     Filter used to modify the instructor dashboard rendering process.
