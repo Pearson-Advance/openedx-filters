@@ -5,8 +5,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 # Ignore the type error for ddt import since it is not recognized by mypy.
 from ddt import data, ddt, unpack  # type: ignore
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 
+from openedx_filters import PipelineStep
 from openedx_filters.learning.filters import (
     AccountSettingsRenderStarted,
     CertificateCreationRequested,
@@ -25,6 +26,7 @@ from openedx_filters.learning.filters import (
     GetEnrollEmailNotificationExtraParameters,
     IDVPageURLRequested,
     InstructorDashboardRenderStarted,
+    LearnerDashboardCoursesRendered,
     ORASubmissionViewRenderStarted,
     RenderXBlockStarted,
     ScheduleQuerySetRequested,
@@ -733,6 +735,44 @@ class TestFederatedContentFilters(TestCase):
         result = CourseRunAPIRenderStarted.run_filter(serialized_courserun)
 
         self.assertEqual(serialized_courserun, result)
+
+
+class ReverseLearnerDashboardCourses(PipelineStep):
+    """Replace the list to verify that pipeline output reaches the caller."""
+
+    def run_filter(self, serialized_courses, sort_by):  # pylint: disable=arguments-differ
+        """Return the course cards in reverse order."""
+        return {
+            "serialized_courses": list(reversed(serialized_courses)) if sort_by == "reverse" else serialized_courses,
+        }
+
+
+class TestLearnerDashboardCoursesFilters(SimpleTestCase):
+    """Test the complete learner dashboard course-list filter."""
+
+    @override_settings(OPEN_EDX_FILTERS_CONFIG={})
+    def test_without_pipeline(self):
+        """An unconfigured filter preserves the original cards and order."""
+        courses = [{"courseRun": {"courseId": "first"}}, {"courseRun": None}]
+
+        self.assertIs(LearnerDashboardCoursesRendered.run_filter(courses), courses)
+
+    @override_settings(OPEN_EDX_FILTERS_CONFIG={
+        LearnerDashboardCoursesRendered.filter_type: {
+            "fail_silently": False,
+            "pipeline": [
+                "openedx_filters.learning.tests.test_filters.ReverseLearnerDashboardCourses",
+            ],
+        },
+    })
+    def test_pipeline_replaces_complete_list(self):
+        """A pipeline can reorder enrollment and entitlement cards, including an empty list."""
+        for courses in ([], [{"courseRun": {"courseId": "first"}}, {"courseRun": None}]):
+            with self.subTest(courses=courses):
+                result = LearnerDashboardCoursesRendered.run_filter(courses, sort_by="reverse")
+
+                self.assertEqual(result, list(reversed(courses)))
+                self.assertIsNot(result, courses)
 
 
 class TestIDVFilters(TestCase):
