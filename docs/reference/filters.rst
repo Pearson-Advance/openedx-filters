@@ -15,7 +15,7 @@ Learning Subdomain
    :members:
 
 Learner dashboard course order
-=============================
+==============================
 
 ``LearnerDashboardCoursesRendered`` receives the complete ``serialized_courses``
 list from ``LearnerDashboardSerializer.get_courses``. Each item is a serialized

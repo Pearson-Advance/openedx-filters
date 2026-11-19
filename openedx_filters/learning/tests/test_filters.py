@@ -742,7 +742,9 @@ class ReverseLearnerDashboardCourses(PipelineStep):
 
     def run_filter(self, serialized_courses, sort_by):  # pylint: disable=arguments-differ
         """Return the course cards in reverse order."""
-        return {"serialized_courses": list(reversed(serialized_courses)) if sort_by == "reverse" else serialized_courses}
+        return {
+            "serialized_courses": list(reversed(serialized_courses)) if sort_by == "reverse" else serialized_courses,
+        }
 
 
 class TestLearnerDashboardCoursesFilters(SimpleTestCase):
